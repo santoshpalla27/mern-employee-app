@@ -16,7 +16,7 @@ pipeline {
         }
         stage('poll scm') {
             steps {
-                git branch: 'main', url: 'https://github.com/santoshpalla27/mern-todo-app.git'
+                git branch: 'main', url: 'https://github.com/santoshpalla27/mern-employee-app.git'
             }
         }
         stage('trivy scan') {
@@ -139,7 +139,7 @@ pipeline {
             environment {
                     GITHUB_USERNAME = "santoshpalla27"
                     GITHUB_EMAIL = "santoshpalla2002@gmail.com"
-                    GITHUB_REPO = "mern-todo-app"
+                    GITHUB_REPO = "mern-employee-app"
                }
             steps {
                 withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
