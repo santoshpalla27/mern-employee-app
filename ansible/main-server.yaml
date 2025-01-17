@@ -1,0 +1,103 @@
+---
+- name: Setup Development Tools
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install Git
+      yum:
+        name: git
+        state: present
+
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Install Docker Compose
+      get_url:
+        url: "https://github.com/docker/compose/releases/latest/download/docker-compose-{{ ansible_system | lower }}-{{ ansible_architecture }}"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Verify Docker Compose installation
+      shell: docker-compose --version
+      register: compose_version
+      failed_when: compose_version.rc != 0
+
+    - name: Add Jenkins repository
+      get_url:
+        url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+        dest: /etc/yum.repos.d/jenkins.repo
+      register: repo_file
+
+    - name: Import Jenkins repository GPG key
+      rpm_key:
+        state: present
+        key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+    - name: Upgrade existing packages
+      yum:
+        name: "*"
+        state: latest
+
+    - name: Install Java 17 (Amazon Corretto)
+      yum:
+        name: java-17-amazon-corretto-devel
+        state: present
+
+    - name: Install Jenkins
+      yum:
+        name: jenkins
+        state: present
+
+    - name: Start Jenkins service
+      service:
+        name: jenkins
+        state: started
+        enabled: yes
+
+    - name: Install Trivy
+      shell: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+
+    - name: Verify Trivy installation
+      shell: trivy --version
+      register: trivy_version
+      failed_when: trivy_version.rc != 0
+
+    - name: Download eksctl binary
+      get_url:
+        url: "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_Linux_amd64.tar.gz"
+        dest: /tmp/eksctl.tar.gz
+
+    - name: Extract eksctl binary
+      unarchive:
+        src: /tmp/eksctl.tar.gz
+        dest: /usr/local/bin/
+        remote_src: yes
+
+    - name: Move eksctl to the correct location
+      command: mv /usr/local/bin/eksctl /usr/local/bin/eksctl
+      args:
+        creates: /usr/local/bin/eksctl
+
+    - name: Download kubectl binary
+      get_url:
+        url: "https://dl.k8s.io/release/v1.24.0/bin/linux/amd64/kubectl"
+        dest: /usr/local/bin/kubectl
+        mode: '0755'
+
+    - name: Verify eksctl installation
+      shell: eksctl version
+      register: eksctl_version
+      failed_when: eksctl_version.rc != 0
+
+    - name: Verify kubectl installation
+      shell: kubectl version --client
+      register: kubectl_version
+      failed_when: kubectl_version.rc != 0

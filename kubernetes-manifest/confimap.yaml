@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  VITE_API_URL: "http://santosh.website/record/"  # Update to your actual frontend API URL
+  MONGO_URI: "mongodb://mongodb:27017"  

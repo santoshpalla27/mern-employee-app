@@ -1,0 +1,25 @@
+---
+- name: Setup Development Tools
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Run SonarQube container using Docker CLI
+      command: docker run -d --name sonar -p 9000:9000 sonarqube:lts-community
+      register: docker_run_result
+      failed_when: docker_run_result.rc != 0
+
+    - name: Verify SonarQube container is running
+      shell: docker ps | grep sonar
+      register: container_status
+      failed_when: container_status.rc != 0
