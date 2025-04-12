@@ -2,6 +2,7 @@ resource "aws_vpc" "main" {
   cidr_block = var.cidr_block
   tags = {
     Name = "${var.project_name}-vpc"
+    "kubernetes.io/cluster/three-tier-project" = "shared"
   }
 }
 
@@ -13,6 +14,8 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
   tags = {
     Name = "${var.project_name}-public${count.index}"
+    "kubernetes.io/cluster/three-tier-project" = "shared"
+    "kubernetes.io/role/elb"                    = "1"
   }
 }
 
@@ -22,7 +25,10 @@ resource "aws_subnet" "private" {
   availability_zone       = var.private_availability_zone
   tags = {
     Name = "${var.project_name}-private"
+    "kubernetes.io/cluster/three-tier-project" = "shared"
+    "kubernetes.io/role/internal-elb"           = "1"
   }
+  
 }
 
 resource "aws_internet_gateway" "igw" {
