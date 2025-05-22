@@ -22,8 +22,9 @@ spec:
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
+          - weights: 1  
             preference:
-              - matchExpressions:
+              matchExpressions:
                   - key: "topology.kubernetes.io/zone"
                     operator: In
                     values: ["us-east-1"]
