@@ -104,16 +104,7 @@ spec:
           limits:
             cpu: "500m"      
             memory: "512Mi"  
-        volumeMounts:
-        - name: frontend-volume
-          mountPath: /home/node/.npm
-        - name: app
-          mountPath: /app
-      volumes:
-      - name: frontend-volume
-        emptyDir: {}
-      - name: app 
-        emptyDir: {}
+
 
     
 ---
