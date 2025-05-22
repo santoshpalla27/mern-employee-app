@@ -63,7 +63,7 @@ spec:
             drop:
               - ALL
           privileged: false
-          readOnlyRootFilesystem: true
+          readOnlyRootFilesystem: false
         startupProbe:
           tcpSocket:
             port: 5173

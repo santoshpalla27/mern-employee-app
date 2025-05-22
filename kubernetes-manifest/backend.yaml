@@ -64,7 +64,7 @@ spec:
             drop:
               - ALL
           privileged: false
-          readOnlyRootFilesystem: true
+          readOnlyRootFilesystem: false
         startupProbe:
           httpGet:
             path: /startup
@@ -102,12 +102,12 @@ spec:
               name: app-config
               key: MONGO_URI 
 
-        volumeMounts:
-        - name: npm-cache
-          mountPath: /home/node/.npm      
-      volumes:
-      - name: npm-cache
-        emptyDir: {}
+      #   volumeMounts:
+      #   - name: npm-cache
+      #     mountPath: /home/node/.npm      
+      # volumes:
+      # - name: npm-cache
+      #   emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
