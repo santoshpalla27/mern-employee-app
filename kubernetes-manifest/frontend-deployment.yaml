@@ -107,8 +107,12 @@ spec:
         volumeMounts:
         - name: frontend-volume
           mountPath: /home/node/.npm
+        - name: app
+          mountPath: /app
       volumes:
       - name: frontend-volume
+        emptyDir: {}
+      - name: app 
         emptyDir: {}
 
     
