@@ -22,7 +22,7 @@ spec:
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
+            preference:
               - matchExpressions:
                   - key: "topology.kubernetes.io/zone"
                     operator: In
