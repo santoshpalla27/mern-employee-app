@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mongodb
+  namespace: three-tier-app
 spec:
   serviceName: "mongodb"
   replicas: 1
@@ -14,51 +15,116 @@ spec:
       labels:
         app: mongodb
     spec:
+      serviceAccountName: three-tier-app
+      terminationGracePeriodSeconds: 5
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: "OnRootMismatch"
       containers:
       - name: mongodb
-        image: mongo:latest
+        image: bitnami/mongodb:8.0.9
+        command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
         ports:
         - containerPort: 27017
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false  
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - FOWNER
+            - SETGID
+            - SETUID
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command:
+            - mongosh
+            - --eval
+            - "db.adminCommand('ping')"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        readinessProbe:
+          exec:
+            command:
+            - mongosh
+            - --eval
+            - "db.adminCommand('ping')"
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+          successThreshold: 1
+        startupProbe:
+          exec:
+            command:
+            - mongosh
+            - --eval
+            - "db.adminCommand('ping')"
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 30
+          successThreshold: 1
         volumeMounts:
         - name: mongo-data
           mountPath: /data/db
-      volumes:
-      - name: mongo-data
-        persistentVolumeClaim:
-          claimName: mongo-pvc
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+      storageClassName: ebs-sc
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: mongodb
+  namespace: three-tier-app
 spec:
   ports:
   - port: 27017
     targetPort: 27017
   selector:
     app: mongodb
+  type: none
+
 ---
-apiVersion: v1
-kind: PersistentVolume
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
 metadata:
-  name: mongo-pv
+  name: allow-backend
+  namespace: three-tier-app
 spec:
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: "/data/mongo"
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mongo-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
+  podSelector:
+    matchLabels:
+      app: mongodb
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: backend

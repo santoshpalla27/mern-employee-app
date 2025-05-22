@@ -3,7 +3,14 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
+  namespace: three-tier-app
 spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   selector:
     matchLabels:
       app: frontend
@@ -12,9 +19,69 @@ spec:
       labels:
         app: frontend
     spec:
-      containers:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "topology.kubernetes.io/zone"
+                    operator: In
+                    values: ["us-east-1"]
+        podAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchLabels:
+                    app: backend
+                topologyKey: "kubernetes.io/hostname"
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: [frontend]
+              topologyKey: "kubernetes.io/hostname" 
+      serviceAccountName: three-tier-app
+      terminationGracePeriodSeconds: 5
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:    
       - name: frontend
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        startupProbe:
+          tcpSocket:
+            port: 5173
+          failureThreshold: 60
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+        readinessProbe:
+          tcpSocket:
+            port: 5173
+          failureThreshold: 3
+          initialDelaySeconds: 10  
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /           
+            port: 5173
+          periodSeconds: 30
+          timeoutSeconds: 5
+          initialDelaySeconds: 0
+          successThreshold: 3
         image: santoshpalla27/3-tier:frontend-2
+        imagePullPolicy: Always
         ports:
         - containerPort: 5173
         env:
@@ -25,36 +92,22 @@ spec:
               key: VITE_API_URL
         resources:
           requests:
-            cpu: "200m"      # Requesting 200 milli-CPU
+            cpu: "200m"     
+            memory: "256Mi"  
           limits:
-            cpu: "500m"      # Limiting the container to 500 milli-CPU
+            cpu: "500m"      
+            memory: "512Mi"  
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: frontend
+  namespace: three-tier-app
 spec:
   ports:
   - port: 5173
     targetPort: 5173
   selector:
     app: frontend
----
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: frontend-hpa
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: frontend
-  minReplicas: 1
-  maxReplicas: 10
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 50
+  type: ClusterIP
+

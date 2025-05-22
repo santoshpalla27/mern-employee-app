@@ -6,7 +6,9 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing 
     alb.ingress.kubernetes.io/target-type: ip 
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]' # ALB listens on port 80
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]' # Added HTTPS
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:537124971455:certificate/1b7675d8-3da9-4022-b498-9ca7e31e27e1 # Added ACM certificate
+    alb.ingress.kubernetes.io/ssl-redirect: "443" # Redirect HTTP to HTTPS
 spec:
   ingressClassName: alb
   rules:
@@ -27,3 +29,5 @@ spec:
                 name: backend
                 port:
                   number: 5050
+
+

@@ -3,8 +3,14 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend
+  namespace: three-tier-app
 spec:
-  replicas: 1
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   selector:
     matchLabels:
       app: backend
@@ -13,8 +19,71 @@ spec:
       labels:
         app: backend
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "topology.kubernetes.io/zone"
+                    operator: In
+                    values: ["us-east-1"]
+        podAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchLabels:
+                    app: frontend
+                topologyKey: "kubernetes.io/hostname"
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: [backend]
+              topologyKey: "kubernetes.io/hostname"
+      serviceAccountName: three-tier-app
+      terminationGracePeriodSeconds: 5
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
       containers:
       - name: backend
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        startupProbe:
+          httpGet:
+            path: /startup
+            port: 5050
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 60
+          successThreshold: 1
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 5050
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5050
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 30
+          failureThreshold: 3
+          successThreshold: 1
         image: santoshpalla27/3-tier:backend-2
         ports:
         - containerPort: 5050
