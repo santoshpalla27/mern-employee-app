@@ -63,7 +63,7 @@ spec:
             drop:
               - ALL
           privileged: false
-          readOnlyRootFilesystem: true
+          readOnlyRootFilesystem: false
         startupProbe:
           tcpSocket:
             port: 5173
@@ -92,6 +92,8 @@ spec:
         ports:
         - containerPort: 5173
         env:
+        - name: npm_config_cache
+          value: /tmp/.npm
         - name: VITE_API_URL
           valueFrom:
             configMapKeyRef:
