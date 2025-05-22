@@ -101,6 +101,8 @@ spec:
             configMapKeyRef:
               name: app-config
               key: MONGO_URI
+        - name: npm_config_cache
+          value: /tmp/.npm
 ---
 apiVersion: v1
 kind: Service
