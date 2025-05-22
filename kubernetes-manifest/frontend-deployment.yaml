@@ -86,7 +86,7 @@ spec:
           periodSeconds: 30
           timeoutSeconds: 5
           initialDelaySeconds: 0
-          successThreshold: 3
+          successThreshold: 1
         image: santoshpalla27/3-tier:frontend-2
         imagePullPolicy: Always
         ports:
