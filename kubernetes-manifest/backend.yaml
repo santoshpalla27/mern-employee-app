@@ -22,26 +22,33 @@ spec:
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weights: 1
+          - weight: 1
             preference:
               matchExpressions:
-                  - key: "topology.kubernetes.io/zone"
-                    operator: In
-                    values: ["us-east-1"]
+              - key: "topology.kubernetes.io/zone"
+                operator: In
+                values: ["us-east-1"]
+
         podAffinity:
-            preferredDuringSchedulingIgnoredDuringExecution:
-              - labelSelector:
-                  matchLabels:
-                    app: frontend
-                topologyKey: "kubernetes.io/hostname"
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: frontend
+              topologyKey: "kubernetes.io/hostname"
+
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
+          - weight: 1
+            podAffinityTerm:
+              labelSelector:
                 matchExpressions:
-                  - key: app
-                    operator: In
-                    values: [backend]
+                - key: app
+                  operator: In
+                  values: [backend]
               topologyKey: "kubernetes.io/hostname"
+
       serviceAccountName: three-tier-app
       terminationGracePeriodSeconds: 5
       securityContext:
