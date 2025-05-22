@@ -46,7 +46,7 @@ spec:
                 matchExpressions:
                 - key: app
                   operator: In
-                  values: [forntend]
+                  values: [frontend]
               topologyKey: "kubernetes.io/hostname"
       serviceAccountName: three-tier-app
       terminationGracePeriodSeconds: 5
@@ -63,7 +63,7 @@ spec:
             drop:
               - ALL
           privileged: false
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
         startupProbe:
           tcpSocket:
             port: 5173
@@ -92,8 +92,6 @@ spec:
         ports:
         - containerPort: 5173
         env:
-        - name: npm_config_cache
-          value: /tmp/.npm
         - name: VITE_API_URL
           valueFrom:
             configMapKeyRef:
@@ -106,6 +104,14 @@ spec:
           limits:
             cpu: "500m"      
             memory: "512Mi"  
+        volumeMounts:
+        - name: frontend-volume
+          mountPath: /tmp
+      volumes:
+      - name: frontend-volume
+        emptyDir: {}
+
+    
 ---
 apiVersion: v1
 kind: Service
