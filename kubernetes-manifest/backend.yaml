@@ -104,7 +104,7 @@ spec:
 
         volumeMounts:
         - name: npm-cache
-          mountPath: /tmp      
+          mountPath: /home/node/.npm      
       volumes:
       - name: npm-cache
         emptyDir: {}

@@ -106,7 +106,7 @@ spec:
             memory: "512Mi"  
         volumeMounts:
         - name: frontend-volume
-          mountPath: /tmp
+          mountPath: /home/node/.npm
       volumes:
       - name: frontend-volume
         emptyDir: {}
