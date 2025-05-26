@@ -5,5 +5,5 @@ metadata:
   name: app-config
   namespace: three-tier-app
 data:
-  VITE_API_URL: "http://backend.santosh.website/"  # Update to your actual frontend API URL
+  VITE_API_URL: "http://backend.santosh.website"  # Update to your actual frontend API URL
   MONGO_URI: "mongodb://mongodb:27017"  

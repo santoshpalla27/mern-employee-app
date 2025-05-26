@@ -115,3 +115,17 @@ The application is deployed to the EKS cluster using these manifests.
 ---
 
 This documentation serves as a detailed reference for the architecture, infrastructure, deployment, and tools used in the development and maintenance of the Three-Tier Employee Application.
+
+
+
+
+
+in this app the backend is available on http://domain/record .this will be vite app url but 
+
+but scince frontend has /record hardcoded then the backend url for frontend will be http://domain
+
+ if(!id) return;
+      setIsNew(false);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/record/${params.id.toString()}`
+      );
