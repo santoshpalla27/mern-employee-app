@@ -50,7 +50,7 @@ RUN mkdir -p /var/run/nginx && \
 USER nginx_user
 
 # Expose port
-EXPOSE 80
+EXPOSE 8080
 
 # Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
