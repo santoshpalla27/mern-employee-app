@@ -26,7 +26,8 @@ spec:
       containers:
       - name: mongodb
         image: bitnami/mongodb:8.0.9
-        command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+        # Remove --replSet flag for simple standalone setup
+        command: ["mongod", "--bind_ip_all"]
         ports:
         - containerPort: 27017
         securityContext:
@@ -109,7 +110,7 @@ spec:
     targetPort: 27017
   selector:
     app: mongodb
-  clusterIP: None
+  type: ClusterIP
 
 ---
 apiVersion: networking.k8s.io/v1

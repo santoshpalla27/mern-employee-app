@@ -66,8 +66,10 @@ spec:
           privileged: false
           readOnlyRootFilesystem: false
         startupProbe:
-          tcpSocket:
+          httpGet:
+            path: /startup
             port: 5050
+            scheme: HTTP
           failureThreshold: 60
           initialDelaySeconds: 10
           periodSeconds: 5

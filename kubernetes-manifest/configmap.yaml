@@ -6,4 +6,9 @@ metadata:
   namespace: three-tier-app
 data:
   VITE_API_URL: "http://backend.santosh.website"  # Update to your actual frontend API URL
-  MONGO_URI: "mongodb://mongodb:27017"  
+  MONGO_URI: "mongodb://mongodb:27017/employees"  
+
+  # mongodb://mongodb.three-tier-app.svc.cluster.local:27017/?replicaSet=rs0
+  # <pod-name>.<service-name>.<namespace>.svc.cluster.local
+  # mongodb://mongodb:27017/?replicaSet=rs0
+
