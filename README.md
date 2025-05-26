@@ -115,4 +115,3 @@ The application is deployed to the EKS cluster using these manifests.
 ---
 
 This documentation serves as a detailed reference for the architecture, infrastructure, deployment, and tools used in the development and maintenance of the Three-Tier Employee Application.
-

@@ -1,17 +1,14 @@
----
+
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: app-ingress
   namespace: three-tier-app
   annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing 
-    alb.ingress.kubernetes.io/target-type: ip 
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]' # Added HTTPS
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:537124971455:certificate/1b7675d8-3da9-4022-b498-9ca7e31e27e1 # Added ACM certificate
-    alb.ingress.kubernetes.io/ssl-redirect: "443" # Redirect HTTP to HTTPS
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
-  ingressClassName: alb
+  ingressClassName: nginx
   rules:
     - host: santosh.website
       http:
@@ -22,9 +19,12 @@ spec:
               service:
                 name: frontend
                 port:
-                  number: 5173
-          - path: /record
-            pathType: Prefix
+                  number: 80
+    - host: backend.santosh.website
+      http:
+        paths:
+          - path: /record/?(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: backend
@@ -32,3 +32,78 @@ spec:
                   number: 5050
 
 
+
+# Host: backend.santosh.website
+
+# Path: /record/?(.*)
+
+# This regex matches both:
+
+# /record
+
+# /record/
+
+# /record/anything
+
+# Rewrite target /record/?(.*) to /$1
+
+# For /record or /record/, $1 is empty → rewritten to /
+
+# For /record/api, $1 is api → rewritten to /api
+
+# Target service: backend:5050
+
+# http://backend.santosh.website/record → backend receives /
+
+# http://backend.santosh.website/record/api → backend receives /api
+
+
+
+
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: app-ingress
+#   namespace: three-tier-app
+#   annotations:
+#     nginx.ingress.kubernetes.io/rewrite-target: /$1
+#     nginx.ingress.kubernetes.io/use-regex: "true"
+#     nginx.ingress.kubernetes.io/ssl-redirect: "true"                            # Redirect HTTP to HTTPS
+#     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"                     # Force HTTPS even if not specified
+#     nginx.ingress.kubernetes.io/ssl-passthrough: "false"                       # Let NGINX handle TLS termination
+#     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"                       # Backend services use HTTP
+# spec:
+#   ingressClassName: nginx
+#   tls:
+#     - hosts:
+#         - santosh.website
+#         - backend.santosh.website
+#       secretName: tls-secret   # <-- You must create this secret from your TLS cert/key
+#   rules:
+#     - host: santosh.website
+#       http:
+#         paths:
+#           - path: /
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: frontend
+#                 port:
+#                   number: 80
+#     - host: backend.santosh.website
+#       http:
+#         paths:
+#           - path: /record/?(.*)
+#             pathType: ImplementationSpecific
+#             backend:
+#               service:
+#                 name: backend
+#                 port:
+#                   number: 5050
+
+
+
+# kubectl create secret tls tls-secret \
+#   --cert=/path/to/tls.crt \
+#   --key=/path/to/tls.key \
+#   -n three-tier-app

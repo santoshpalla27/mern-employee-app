@@ -50,11 +50,11 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       serviceAccountName: three-tier-app
       terminationGracePeriodSeconds: 5
-      # securityContext:
-      #   fsGroup: 1000
-      #   runAsGroup: 1000
-      #   runAsNonRoot: true
-      #   runAsUser: 1000
+      securityContext:
+        fsGroup: 1001
+        runAsGroup: 1001
+        runAsNonRoot: true
+        runAsUser: 1001
       containers:    
       - name: frontend
         securityContext:
@@ -63,7 +63,7 @@ spec:
             drop:
               - ALL
           privileged: false
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
         startupProbe:
           tcpSocket:
             port: 5173
@@ -81,7 +81,7 @@ spec:
           timeoutSeconds: 5
         livenessProbe:
           httpGet:
-            path: /           
+            path: /health          
             port: 5173
           periodSeconds: 30
           timeoutSeconds: 5
@@ -115,7 +115,7 @@ metadata:
   namespace: three-tier-app
 spec:
   ports:
-  - port: 5173
+  - port: 80
     targetPort: 5173
   selector:
     app: frontend
